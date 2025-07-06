@@ -1,52 +1,48 @@
 
-// Floral Business Website JavaScript
+// Foundation-based Floral Business Website JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const hamburger = document.getElementById('hamburger');
-    const navMenu = document.getElementById('nav-menu');
+$(document).ready(function() {
+    // Initialize Foundation
+    $(document).foundation();
     
-    if (hamburger && navMenu) {
-        hamburger.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-            hamburger.classList.toggle('active');
-        });
+    // Smooth scrolling for navigation links
+    $('.nav-link').on('click', function(e) {
+        e.preventDefault();
+        const target = $(this.getAttribute('href'));
         
-        // Close menu when clicking on a link
-        document.querySelectorAll('.nav-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
-                hamburger.classList.remove('active');
-            });
+        if (target.length) {
+            // Close off-canvas menu on mobile
+            $('#offCanvas').foundation('close');
+            
+            // Smooth scroll to target
+            $('html, body').animate({
+                scrollTop: target.offset().top - 20
+            }, 800, 'swing');
+        }
+    });
+    
+    // Active navigation highlighting
+    function updateActiveNavigation() {
+        const scrollPosition = $(window).scrollTop();
+        const windowHeight = $(window).height();
+        
+        $('.nav-link').removeClass('active');
+        
+        $('section').each(function() {
+            const section = $(this);
+            const sectionTop = section.offset().top - 100;
+            const sectionBottom = sectionTop + section.outerHeight();
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionBottom) {
+                const sectionId = section.attr('id');
+                $(`.nav-link[href="#${sectionId}"]`).addClass('active');
+            }
         });
     }
     
-    // Smooth scrolling for navigation links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-        });
-    });
-    
-    // Navbar background on scroll
-    window.addEventListener('scroll', function() {
-        const navbar = document.querySelector('.navbar');
-        if (navbar) {
-            if (window.scrollY > 100) {
-                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-                navbar.style.boxShadow = '0 2px 20px rgba(0,0,0,0.1)';
-            } else {
-                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-                navbar.style.boxShadow = 'none';
-            }
-        }
+    // Update active navigation on scroll
+    $(window).on('scroll', function() {
+        updateActiveNavigation();
     });
     
     // Fade in animation on scroll
@@ -58,121 +54,175 @@ document.addEventListener('DOMContentLoaded', function() {
     const observer = new IntersectionObserver(function(entries) {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
+                $(entry.target).addClass('visible');
             }
         });
     }, observerOptions);
     
     // Add fade-in class to elements and observe them
-    const elementsToAnimate = document.querySelectorAll('.service-card, .gallery-item, .about-text, .contact-info');
-    elementsToAnimate.forEach(el => {
-        el.classList.add('fade-in');
-        observer.observe(el);
+    $('.service-card, .gallery-item, .about-content, .team-member').each(function() {
+        $(this).addClass('fade-in');
+        observer.observe(this);
     });
     
     // Contact form submission
-    const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(contactForm);
-            const name = contactForm.querySelector('input[type="text"]').value;
-            const email = contactForm.querySelector('input[type="email"]').value;
-            const phone = contactForm.querySelector('input[type="tel"]').value;
-            const message = contactForm.querySelector('textarea').value;
-            
-            // Simple validation
-            if (!name || !email || !message) {
-                alert('Please fill in all required fields.');
-                return;
-            }
-            
-            // Simulate form submission
-            const submitButton = contactForm.querySelector('button[type="submit"]');
-            const originalText = submitButton.textContent;
-            submitButton.textContent = 'Sending...';
-            submitButton.disabled = true;
-            
-            setTimeout(() => {
-                alert('Thank you for your message! We\'ll get back to you soon.');
-                contactForm.reset();
-                submitButton.textContent = originalText;
-                submitButton.disabled = false;
-            }, 1500);
-        });
-    }
-    
-    // Gallery lightbox effect (simple version)
-    const galleryItems = document.querySelectorAll('.gallery-item img');
-    galleryItems.forEach(img => {
-        img.addEventListener('click', function() {
-            // Create overlay
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.9);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 2000;
-                cursor: pointer;
-            `;
-            
-            // Create enlarged image
-            const enlargedImg = document.createElement('img');
-            enlargedImg.src = this.src;
-            enlargedImg.style.cssText = `
-                max-width: 90%;
-                max-height: 90%;
-                object-fit: contain;
-                border-radius: 10px;
-            `;
-            
-            overlay.appendChild(enlargedImg);
-            document.body.appendChild(overlay);
-            
-            // Close on click
-            overlay.addEventListener('click', () => {
-                document.body.removeChild(overlay);
-            });
-        });
-    });
-    
-    // Add some interactive hover effects
-    const serviceCards = document.querySelectorAll('.service-card');
-    serviceCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-10px) scale(1.02)';
-        });
+    $('#contact-form').on('submit', function(e) {
+        e.preventDefault();
         
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
+        const form = $(this);
+        const name = form.find('input[type="text"]').val();
+        const email = form.find('input[type="email"]').val();
+        const phone = form.find('input[type="tel"]').val();
+        const message = form.find('textarea').val();
+        
+        // Simple validation
+        if (!name || !email || !message) {
+            alert('Bitte füllen Sie alle Pflichtfelder aus.');
+            return;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('Bitte geben Sie eine gültige E-Mail-Adresse ein.');
+            return;
+        }
+        
+        // Simulate form submission
+        const submitButton = form.find('button[type="submit"]');
+        const originalText = submitButton.text();
+        
+        submitButton.text('Wird gesendet...').prop('disabled', true);
+        
+        setTimeout(function() {
+            alert('Vielen Dank für Ihre Nachricht! Wir melden uns bald bei Ihnen.');
+            form[0].reset();
+            submitButton.text(originalText).prop('disabled', false);
+        }, 1500);
+    });
+    
+    // Gallery lightbox effect
+    $('.gallery-item').on('click', function() {
+        const img = $(this).find('img');
+        const imgSrc = img.attr('src');
+        const imgAlt = img.attr('alt');
+        
+        // Create lightbox overlay
+        const lightbox = $(`
+            <div class="lightbox-overlay">
+                <img src="${imgSrc}" alt="${imgAlt}" class="lightbox-image">
+            </div>
+        `);
+        
+        $('body').append(lightbox);
+        
+        // Fade in lightbox
+        lightbox.hide().fadeIn(300);
+        
+        // Close lightbox on click
+        lightbox.on('click', function() {
+            $(this).fadeOut(300, function() {
+                $(this).remove();
+            });
         });
     });
     
-    // CTA button click handler
-    const ctaButton = document.querySelector('.cta-button');
-    if (ctaButton) {
-        ctaButton.addEventListener('click', function() {
-            document.querySelector('#contact').scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    }
+    // Service card hover effects
+    $('.service-card').hover(
+        function() {
+            $(this).css('transform', 'translateY(-10px) scale(1.02)');
+        },
+        function() {
+            $(this).css('transform', 'translateY(0) scale(1)');
+        }
+    );
+    
+    // Hero CTA button smooth scroll
+    $('.hero-section .button').on('click', function(e) {
+        e.preventDefault();
+        const target = $('#contact');
+        
+        if (target.length) {
+            $('html, body').animate({
+                scrollTop: target.offset().top - 20
+            }, 800, 'swing');
+        }
+    });
+    
+    // Parallax effect for hero section (subtle)
+    $(window).on('scroll', function() {
+        const scrolled = $(window).scrollTop();
+        const heroImage = $('.hero-image');
+        
+        if (heroImage.length && scrolled < $(window).height()) {
+            heroImage.css('transform', `translateY(${scrolled * 0.5}px)`);
+        }
+    });
+    
+    // Mobile menu auto-close on scroll
+    let lastScrollTop = 0;
+    $(window).on('scroll', function() {
+        const currentScroll = $(window).scrollTop();
+        
+        if (currentScroll > lastScrollTop && currentScroll > 100) {
+            // Scrolling down - close mobile menu if open
+            if ($('#offCanvas').hasClass('is-open')) {
+                $('#offCanvas').foundation('close');
+            }
+        }
+        
+        lastScrollTop = currentScroll;
+    });
+    
+    // Form field animations
+    $('.contact-form input, .contact-form textarea').on('focus', function() {
+        $(this).parent().addClass('focused');
+    }).on('blur', function() {
+        if (!$(this).val()) {
+            $(this).parent().removeClass('focused');
+        }
+    });
+    
+    // Initialize active navigation on page load
+    updateActiveNavigation();
+    
+    console.log('Bloom & Bliss website initialized with Foundation framework');
 });
 
-// Utility function to create folder structure for images
-function setupImageStorage() {
-    // This would typically be handled by the backend
-    // For now, we're using external images from Unsplash
-    console.log('Image storage setup - using external placeholder images');
+// Utility functions
+function showNotification(message, type = 'success') {
+    const notification = $(`
+        <div class="callout ${type}" data-closable style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 300px;">
+            ${message}
+            <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(function() {
+        notification.fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 5000);
 }
 
-// Initialize image storage
-setupImageStorage();
+// Preload images for better performance
+function preloadImages() {
+    const images = [
+        'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1500673922987-e212871fec22?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
+        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80'
+    ];
+    
+    images.forEach(function(src) {
+        const img = new Image();
+        img.src = src;
+    });
+}
+
+// Initialize image preloading
+preloadImages();
